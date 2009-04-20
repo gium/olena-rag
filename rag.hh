@@ -38,7 +38,7 @@ namespace mln
     mln_concrete(I) grad;
     grad = morpho::closing::area(input, c4(), 6);
     image2d<L> wsed =
-      morpho::meyer_wst(grad, c4(), n_basins);
+      morpho::watershed::flooding(grad, c4(), n_basins);
     util::graph g = make::region_adjacency_graph(wsed, c4(), 4u);
     mln_VAR(vertices, make::p_vertices_with_mass_centers(wsed, n_basins, g));
     debug::draw_graph(input, vertices, 100, 200);
