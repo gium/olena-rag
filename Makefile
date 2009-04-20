@@ -3,7 +3,7 @@ HEADERS=rag.hh
 OBJ=$(SRC:.cc=.o)
 TEST=rag
 CXX=g++-4.3
-CXXFLAGS=-W -Wall -O3
+CXXFLAGS=-W -Wall -O1 -DNDEBUG
 CPPFLAGS=-I../../../../
 LD=$(CXX)
 LDFLAGS=
