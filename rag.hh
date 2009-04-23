@@ -1,39 +1,42 @@
-#include <iostream>
+# include <iostream>
 
-#include <mln/io/ppm/save.hh>
-#include <mln/core/concept/image.hh>
-#include <mln/core/image/image2d.hh>
-#include <mln/core/alias/window2d.hh>
-#include <mln/core/alias/neighb2d.hh>
+# include <mln/io/ppm/save.hh>
+# include <mln/core/concept/image.hh>
+# include <mln/core/image/image2d.hh>
+# include <mln/core/alias/window2d.hh>
+# include <mln/core/alias/neighb2d.hh>
 
-#include <mln/value/int_u8.hh>
-#include <mln/value/label_8.hh>
-#include <mln/value/label_16.hh>
+# include <mln/value/int_u8.hh>
+# include <mln/value/label_8.hh>
+# include <mln/value/label_16.hh>
 
-#include <mln/morpho/watershed/flooding.hh>
-#include <mln/morpho/watershed/superpose.hh>
-#include <mln/morpho/meyer_wst.hh>
-#include <mln/morpho/closing/area.hh>
-#include <mln/morpho/opening/area.hh>
-#include <mln/morpho/elementary/gradient.hh>
-#include <mln/level/transform.hh>
+# include <mln/morpho/watershed/flooding.hh>
+# include <mln/morpho/watershed/superpose.hh>
+# include <mln/morpho/meyer_wst.hh>
+# include <mln/morpho/closing/area.hh>
+# include <mln/morpho/opening/area.hh>
+# include <mln/morpho/elementary/gradient.hh>
+# include <mln/level/transform.hh>
 
-#include <mln/make/region_adjacency_graph.hh>
-#include <mln/util/graph.hh>
+# include <mln/make/region_adjacency_graph.hh>
+# include <mln/util/graph.hh>
 
-#include <mln/core/site_set/p_vertices.hh>
-#include <mln/core/var.hh>
-#include <mln/fun/i2v/array.hh>
-#include <mln/make/p_vertices_with_mass_centers.hh>
-#include <mln/literal/grays.hh>
-#include <mln/debug/draw_graph.hh>
-#include <mln/draw/line.hh>
+# include <mln/core/site_set/p_vertices.hh>
+# include <mln/core/var.hh>
+# include <mln/fun/i2v/array.hh>
+# include <mln/make/p_vertices_with_mass_centers.hh>
+# include <mln/literal/grays.hh>
+# include <mln/debug/draw_graph.hh>
+# include <mln/draw/line.hh>
 
 # include <mln/core/concept/function.hh>
 # include <mln/util/array.hh>
 # include <mln/util/couple.hh>
 # include <mln/norm/l2.hh>
+# include <mln/logical/not.hh>
 
+# include "center_weight.hh"
+# include "p_vertices_with_accu.hh"
 
 namespace mln
 {
@@ -83,7 +86,7 @@ namespace mln
 
     p_edges<G, edges_value_t> pe(g, edge_values);
 
-    trace::exiting("make::p_edges_with_mass_centers");
+    trace::exiting("make::p_edges_for_lines");
     return pe;
   }
 
@@ -98,17 +101,33 @@ namespace mln
     for_all(e)
     {
       // std::cerr << edges_values.function()(e.id()).second() << std::endl;
-      if (edges_values.function()(e.id()).second() < 0.6)
+      if (edges_values.function()(e.id()).second() < 0.7)
         draw::line(input, vertices_values(e.v1()),
                    vertices_values(e.v2()), e.id() + 1);
     }
   }
+
+  template <typename G, typename EV, typename VV>
+  p_edges<G, fun::i2v::array<int> > label_edges(const Graph<G>& g_, const EV& edges_values,
+                                               const VV& vertices_values)
+  {
+    const G& g = exact(g_);
+    typedef fun::i2v::array<int> edges_value_t;
+    edges_value_t label_values(g.e_nmax());
+
+    // FIXME
+
+    p_edges<G, edges_value_t> pe(g, label_values);
+    return pe;
+  }
+
 
   template <typename I>
   mln_concrete(I) rag(Image<I>& input_)
   {
     I& input = exact(input_);
     typedef label_16 L;
+    typedef mln_site(I) P;
     L n_basins;
     mln_concrete(I) grad;
     grad = morpho::closing::area(input, c4(), 20);
@@ -118,10 +137,16 @@ namespace mln
     std::cerr << n_basins << std::endl;
     // io::ppm::save(morpho::watershed::superpose(input, wsed, literal::red), "wsd.ppm");
     util::graph g = make::region_adjacency_graph(wsed, c4(), n_basins);
-    mln_VAR(vertices, make::p_vertices_with_mass_centers(wsed, n_basins, g));
+
+    I not_input = logical::not_(input);
+    accu::center_weight<I> accu(not_input);
+    mln_VAR(vertices, make::p_vertices_with_accu(wsed, n_basins, g, accu));
+
     std::cerr << "make::p_vertices_with_mass_centers: done" << std::endl;
     mln_VAR(edges, p_edges_for_lines(g, vertices));
     std::cerr << "p_edges_for_lines: done" << std::endl;
+
+    mln_VAR(lbl_edges, label_edges(g, vertices, edges));
     draw_edges(input, g, edges, vertices);
     std::cerr << "draw_edges: done" << std::endl;
     return input;
