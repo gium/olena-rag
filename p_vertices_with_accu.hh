@@ -42,7 +42,7 @@
 # include <mln/labeling/compute.hh>
 
 # include <mln/accu/center.hh>
-
+# include <mln/util/couple.hh>
 # include <mln/fun/i2v/array.hh>
 
 
@@ -80,7 +80,7 @@ namespace mln
 
     template <typename W, typename G, typename A>
     inline
-    p_vertices<G, fun::i2v::array<mln_site(W)> >
+    p_vertices<G, fun::i2v::array<util::couple<mln_site(W), int> > >
     p_vertices_with_accu(const Image<W>& wst_,
                          const mln_value(W)& nbasins,
                          const Graph<G>& g_,
@@ -94,7 +94,7 @@ namespace mln
       mln_precondition(g.is_valid());
 
       typedef mln_site(W) P;
-      typedef fun::i2v::array<P> vertex_sites_t;
+      typedef fun::i2v::array<util::couple<P, int> > vertex_sites_t;
 
       vertex_sites_t vertex_sites;
       convert::from_to(labeling::compute(accumulator, wst, nbasins),

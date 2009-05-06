@@ -3,7 +3,7 @@ HEADERS=rag.hh
 OBJ=$(SRC:.cc=.o)
 TEST=rag
 CXX=g++-4.3
-CXXFLAGS=-W -Wall -O1
+CXXFLAGS=-W -Wall -O2 -DNDEBUG
 CPPFLAGS=-I../../../../
 LD=$(CXX)
 LDFLAGS=
@@ -22,4 +22,4 @@ clean:
 distclean: clean
 	rm -f $(TEST)
 
-rag.o: rag.cc rag.hh
+rag.o: rag.cc $(wildcard *.hh)

@@ -38,6 +38,8 @@
 # include "center_weight.hh"
 # include "p_vertices_with_accu.hh"
 
+# include <mln/core/image/extended.hh>
+
 namespace mln
 {
   using value::int_u8;
@@ -73,11 +75,11 @@ namespace mln
     mln_edge_iter(G) e(g);
     for_all(e)
     {
-      distance_t d = distance(vertices_values(e.v1()), vertices_values(e.v2()));
-      distance_t y = std::abs(vertices_values(e.v1())[0] -
-                              vertices_values(e.v2())[0]); // We lose genericity.
-      distance_t x = std::abs(vertices_values(e.v1())[1] -
-                              vertices_values(e.v2())[1]);
+      distance_t d = distance(vertices_values(e.v1()).first(), vertices_values(e.v2()).first());
+      distance_t y = std::abs(vertices_values(e.v1()).first()[0] -
+                              vertices_values(e.v2()).first()[0]); // We lose genericity.
+      distance_t x = std::abs(vertices_values(e.v1()).first()[1] -
+                              vertices_values(e.v2()).first()[1]);
       assert(y != 0);
       angle_t a =  std::abs(atan(y / x));
 
@@ -100,26 +102,38 @@ namespace mln
     mln_edge_iter(G) e(g);
     for_all(e)
     {
+      int val = vertices_values(e.v1()).second() + vertices_values(e.v2()).second() + 1;
       // std::cerr << edges_values.function()(e.id()).second() << std::endl;
-      if (edges_values.function()(e.id()).second() < 0.7)
-        draw::line(input, vertices_values(e.v1()),
-                   vertices_values(e.v2()), e.id() + 1);
+      // if (edges_values.function()(e.id()).second() < 0.7)
+      draw::line(input, vertices_values(e.v1()).first(),
+                 vertices_values(e.v2()).first(), val);
     }
   }
 
-  template <typename G, typename EV, typename VV>
-  p_edges<G, fun::i2v::array<int> > label_edges(const Graph<G>& g_, const EV& edges_values,
-                                               const VV& vertices_values)
-  {
-    const G& g = exact(g_);
-    typedef fun::i2v::array<int> edges_value_t;
-    edges_value_t label_values(g.e_nmax());
+  // namespace convert
+  // {
+  //   namespace over_load
+  //   {
+  //     // util::couple<T, U> -> util::couple<V, W>
+  //   }
+  // }
 
-    // FIXME
+  // template <typename G, typename I, typename EV, typename VV>
+  // p_edges<G, fun::i2v::array<int> > label_edges(const Graph<G>& g_,
+  //                                               const Image<I>& labels_;
+  //                                               const EV& edges_values,
+  //                                               const VV& vertices_values)
+  // {
+  //   const G& g = exact(g_);
+  //   const I& labels = exact(labels_);
+  //   typedef fun::i2v::array<int> edges_value_t;
+  //   edges_value_t label_values(g.e_nmax());
 
-    p_edges<G, edges_value_t> pe(g, label_values);
-    return pe;
-  }
+  //   // FIXME
+
+  //   p_edges<G, edges_value_t> pe(g, label_values);
+  //   return pe;
+  // }
 
 
   template <typename I>
@@ -146,7 +160,7 @@ namespace mln
     mln_VAR(edges, p_edges_for_lines(g, vertices));
     std::cerr << "p_edges_for_lines: done" << std::endl;
 
-    mln_VAR(lbl_edges, label_edges(g, vertices, edges));
+    // mln_VAR(lbl_edges, label_edges(g, vertices, edges));
     draw_edges(input, g, edges, vertices);
     std::cerr << "draw_edges: done" << std::endl;
     return input;

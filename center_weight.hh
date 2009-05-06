@@ -37,6 +37,7 @@
 
 # include <mln/accu/internal/base.hh>
 # include <mln/accu/bbox.hh>
+# include <mln/util/couple.hh>
 
 namespace mln
 {
@@ -50,7 +51,7 @@ namespace mln
     /// \tparam P the type of site.
     /// \tparam V the type of vector to be used as result.
     ///		  The default vector type is the one provided by P.
-    template <typename I, typename V = mln_psite(I)::vec>
+    template <typename I, typename V = util::couple<mln_psite(I)::vec, int> >
     struct center_weight
       : public mln::accu::internal::base<V, center_weight<I,V> >
     {
@@ -79,6 +80,7 @@ namespace mln
       algebra::vec<P::dim, mln_sum(mln_coord(P))> center_;
       unsigned nsites_;
       const image_weight& im_;
+      int border_;
     };
 
     namespace meta
@@ -117,6 +119,7 @@ namespace mln
     {
       center_ = literal::zero;
       nsites_ = 0;
+      border_ = 0;
     }
 
     template <typename I, typename V>
@@ -126,6 +129,10 @@ namespace mln
     {
       center_ += (im_(t) * t.to_vec());
       nsites_ += im_(t);
+      if (t[1] == 0)
+        border_ = 1;
+      if (static_cast<unsigned>(t[1]) == im_.ncols() - 1)
+        border_ = 2;
     }
 
     template <typename I, typename V>
@@ -135,6 +142,8 @@ namespace mln
     {
       center_ += other.center_;
       nsites_ += other.nsites_;
+      if (border_ == 0)
+        border_ = other.border_;
     }
 
     template <typename I, typename V>
@@ -145,7 +154,7 @@ namespace mln
       // mln_precondition(is_valid());
       if (! is_valid())
 	return V();
-      return center_ / nsites_;
+      return V(center_ / nsites_, border_);
     }
 
     template <typename I, typename V>
