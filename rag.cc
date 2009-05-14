@@ -1,4 +1,6 @@
 #include <iostream>
+# include <cstdlib> // rand
+# include <ctime> // rand
 
 #include <mln/io/pgm/load.hh>
 #include <mln/io/pgm/save.hh>
@@ -15,6 +17,8 @@ int main(int argc, char* argv[])
   if (argc != 2)
     usage(argv[0]);
   // mln::Image<E>
+
+  srand(time(0));
 
   using namespace mln;
   using value::int_u8;

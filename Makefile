@@ -1,8 +1,8 @@
 SRC=rag.cc
-HEADERS=rag.hh
+HEADERS=center_weight.hh dijkstra.hh p_vertices_with_accu.hh rag.hh
 OBJ=$(SRC:.cc=.o)
 TEST=rag
-CXX=g++-4.3
+CXX=g++-
 CXXFLAGS=-W -Wall -O2 -DNDEBUG
 CPPFLAGS=-I../../../../
 LD=$(CXX)
